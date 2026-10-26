@@ -124,6 +124,20 @@ async function main() {
   }
 
   const existing = await readExisting();
+  if (existing) {
+    const previousBySlug = new Map(
+      existing.projects.map((project) => [project.slug, project]),
+    );
+    for (const project of result.data.projects) {
+      if (!project.manual) continue;
+      const previous = previousBySlug.get(project.slug);
+      if (previous) {
+        project.createdAt = previous.createdAt;
+        project.pushedAt = previous.pushedAt;
+      }
+    }
+  }
+
   const changed = !existing || !sameContent(existing, result.data);
   const output: ProjectData =
     existing && !changed ? { ...result.data, syncedAt: existing.syncedAt } : result.data;
