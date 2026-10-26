@@ -62,10 +62,15 @@ export async function fetchRepos(
   return repos;
 }
 
-function parseLastModified(value: string | null): string | null {
+export function parseLastModified(value: string | null): string | null {
   if (!value) return null;
   const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+  if (!Number.isFinite(parsed)) return null;
+  // GitHub Pages can return the same build time with a one-second wobble
+  // between requests. Minute precision keeps the generated index stable.
+  const date = new Date(parsed);
+  date.setUTCSeconds(0, 0);
+  return date.toISOString();
 }
 
 export async function fetchPageMeta(url: string): Promise<PageMeta> {

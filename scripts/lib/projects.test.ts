@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parseLastModified } from "./pages.ts";
 import {
   buildProjectData,
   parsePageMeta,
@@ -64,6 +65,15 @@ describe("parsePageMeta", () => {
   it("ignores non-https images", () => {
     const html = `<meta property="og:image" content="http://example.com/card.png" />`;
     expect(parsePageMeta(html, "https://example.com/").image).toBeNull();
+  });
+});
+
+describe("parseLastModified", () => {
+  it("rounds GitHub Pages build timestamps to minute precision", () => {
+    expect(parseLastModified("Mon, 26 Oct 2026 03:30:27 GMT")).toBe(
+      "2026-10-26T03:30:00.000Z",
+    );
+    expect(parseLastModified("not a date")).toBeNull();
   });
 });
 
