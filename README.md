@@ -36,6 +36,18 @@ The repository object returned by the GitHub REST API includes a `has_pages` boo
 
 `has_pages` can be true before a site is built. The sync script fetches each project URL, keeps only `200` HTML responses, and records the `last-modified` header as the deployment time. It also reads the page title, meta description, and Open Graph image to improve cards when the repository has no description or image.
 
+### Snapshots
+
+Every card uses a local screenshot at `public/snapshots/<slug>.jpg`. The sync script captures a 1200×750 browser screenshot with Playwright and the system Chrome, then uses it as the card image. Open Graph images are only a fallback.
+
+Snapshots are refreshed only when a project's `deployedAt`/`pushedAt` or URL changes, or when the image is missing. `data/snapshots.json` records the source version so the repo does not accumulate noisy screenshot commits.
+
+```sh
+npm run projects:snapshots   # force-refresh every snapshot
+```
+
+If Chrome is unavailable, the sync keeps existing snapshots and falls back to Open Graph images or the generated gradient. Set `CHROME_PATH` to point at a Chrome binary if needed. In GitHub Actions, the `ubuntu-latest` runner already includes Chrome.
+
 ## Adding a project
 
 1. Create a public repo under `JorgeQuijano`.
@@ -86,8 +98,9 @@ The hidden entry for `jquijano.github.io` is intentional: it is a 2022 project p
 
 ```sh
 npm install
-npm run projects:sync   # fetch repos + pages, rewrite the generated JSON
-npm run dev             # http://localhost:5173/
+npm run projects:sync       # fetch repos + pages, refresh stale snapshots, rewrite JSON
+npm run projects:snapshots  # force-refresh every page snapshot
+npm run dev                 # http://localhost:5173/
 npm test
 npm run build
 npm run preview
@@ -141,6 +154,9 @@ data/projects.yml                      manual curation
 scripts/sync-projects.ts               discovery + generation
 scripts/lib/projects.ts                filtering, merging, page metadata parser
 scripts/lib/pages.ts                   GitHub API + page fetcher
+scripts/lib/snapshots.ts               Playwright screenshot capture + manifest
+data/snapshots.json                    snapshot source versions
+public/snapshots/*.jpg                 generated card snapshots
 src/data/projects.generated.json       generated; do not edit by hand
 src/lib/theme.tsx                      system/dark/light theme provider
 src/components/                        index UI

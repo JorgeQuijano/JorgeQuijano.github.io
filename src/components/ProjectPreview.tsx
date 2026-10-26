@@ -46,7 +46,13 @@ export default function ProjectPreview({
         background: `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 54%, ${palette[2]} 100%)`,
       }}
     >
-      {showImage ? (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={`preview-initials ${featured ? "text-7xl" : "text-6xl"}`}>
+          {initials(project.name)}
+        </span>
+      </div>
+
+      {showImage && (
         <img
           src={project.image ?? ""}
           alt=""
@@ -55,12 +61,6 @@ export default function ProjectPreview({
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
         />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`preview-initials ${featured ? "text-7xl" : "text-6xl"}`}>
-            {initials(project.name)}
-          </span>
-        </div>
       )}
 
       <div className="preview-scrim" />

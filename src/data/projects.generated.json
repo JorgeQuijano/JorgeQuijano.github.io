@@ -1,7 +1,7 @@
 {
   "version": 1,
   "owner": "JorgeQuijano",
-  "syncedAt": "2026-10-26T03:35:24.508Z",
+  "syncedAt": "2026-10-26T03:47:29.026Z",
   "projects": [
     {
       "id": 1387853777,
@@ -20,7 +20,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/bottle-washer-pro-manual.jpg",
       "manual": false,
       "live": true
     },
@@ -41,7 +41,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/code10.jpg",
       "manual": false,
       "live": true
     },
@@ -62,7 +62,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/docready.jpg",
       "manual": false,
       "live": true
     },
@@ -89,7 +89,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/duty-decoder.jpg",
       "manual": false,
       "live": true
     },
@@ -119,7 +119,7 @@
       "featured": true,
       "order": 2,
       "archived": false,
-      "image": "https://jorgequijano.github.io/food-finder/assets/preview.png",
+      "image": "/snapshots/food-finder.jpg",
       "manual": false,
       "live": true
     },
@@ -140,7 +140,7 @@
       "featured": true,
       "order": 4,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/football-manager.jpg",
       "manual": false,
       "live": true
     },
@@ -161,7 +161,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/lofibeats.jpg",
       "manual": false,
       "live": true
     },
@@ -182,7 +182,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/lofipro.jpg",
       "manual": false,
       "live": true
     },
@@ -203,7 +203,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/london-on-traffic-map.jpg",
       "manual": false,
       "live": true
     },
@@ -224,7 +224,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/lonradio.jpg",
       "manual": false,
       "live": true
     },
@@ -245,7 +245,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/nbsleep.jpg",
       "manual": false,
       "live": true
     },
@@ -266,7 +266,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/openflow.jpg",
       "manual": false,
       "live": true
     },
@@ -287,7 +287,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/pcmr-store.jpg",
       "manual": false,
       "live": true
     },
@@ -308,7 +308,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/permitping.jpg",
       "manual": false,
       "live": true
     },
@@ -329,7 +329,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/pl-connections.jpg",
       "manual": false,
       "live": true
     },
@@ -350,7 +350,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/sec10.jpg",
       "manual": false,
       "live": true
     },
@@ -379,7 +379,7 @@
       "featured": true,
       "order": 1,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/situation-index.jpg",
       "manual": false,
       "live": true
     },
@@ -400,7 +400,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/stroller.jpg",
       "manual": false,
       "live": true
     },
@@ -421,7 +421,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/tariffkit.jpg",
       "manual": false,
       "live": true
     },
@@ -442,7 +442,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": "https://jorgequijano.github.io/tou-now/og-image.png",
+      "image": "/snapshots/tou-now.jpg",
       "manual": false,
       "live": true
     },
@@ -463,7 +463,7 @@
       "featured": false,
       "order": 1000,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/tron-3d.jpg",
       "manual": false,
       "live": true
     },
@@ -484,7 +484,7 @@
       "featured": true,
       "order": 3,
       "archived": false,
-      "image": null,
+      "image": "/snapshots/windsurf.jpg",
       "manual": false,
       "live": true
     }

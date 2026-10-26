@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "snapshots": {
+    "bottle-washer-pro-manual": {
+      "file": "snapshots/bottle-washer-pro-manual.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/bottle-washer-pro-manual/",
+      "sourceVersion": "2026-09-25T19:05:00.000Z",
+      "capturedAt": "2026-10-26T03:47:31.592Z"
+    },
+    "code10": {
+      "file": "snapshots/code10.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/code10/",
+      "sourceVersion": "2026-09-20T16:50:00.000Z",
+      "capturedAt": "2026-10-26T03:47:33.920Z"
+    },
+    "docready": {
+      "file": "snapshots/docready.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/docready/",
+      "sourceVersion": "2026-09-17T19:00:00.000Z",
+      "capturedAt": "2026-10-26T03:47:36.302Z"
+    },
+    "duty-decoder": {
+      "file": "snapshots/duty-decoder.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/duty-decoder/",
+      "sourceVersion": "2026-09-16T17:48:00.000Z",
+      "capturedAt": "2026-10-26T03:47:38.377Z"
+    },
+    "food-finder": {
+      "file": "snapshots/food-finder.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/food-finder/",
+      "sourceVersion": "2026-10-26T03:24:00.000Z",
+      "capturedAt": "2026-10-26T03:47:41.103Z"
+    },
+    "football-manager": {
+      "file": "snapshots/football-manager.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/football-manager/",
+      "sourceVersion": "2026-10-17T04:13:00.000Z",
+      "capturedAt": "2026-10-26T03:47:43.499Z"
+    },
+    "lofibeats": {
+      "file": "snapshots/lofibeats.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/lofibeats/",
+      "sourceVersion": "2026-08-16T20:25:00.000Z",
+      "capturedAt": "2026-10-26T03:47:45.826Z"
+    },
+    "lofipro": {
+      "file": "snapshots/lofipro.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/lofipro/",
+      "sourceVersion": "2026-08-16T21:05:00.000Z",
+      "capturedAt": "2026-10-26T03:47:48.500Z"
+    },
+    "london-on-traffic-map": {
+      "file": "snapshots/london-on-traffic-map.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/london-on-traffic-map/",
+      "sourceVersion": "2026-03-15T19:49:00.000Z",
+      "capturedAt": "2026-10-26T03:47:51.412Z"
+    },
+    "lonradio": {
+      "file": "snapshots/lonradio.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/lonradio/",
+      "sourceVersion": "2026-08-16T21:29:00.000Z",
+      "capturedAt": "2026-10-26T03:47:53.520Z"
+    },
+    "nbsleep": {
+      "file": "snapshots/nbsleep.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/nbsleep/",
+      "sourceVersion": "2026-10-12T18:29:00.000Z",
+      "capturedAt": "2026-10-26T03:47:55.739Z"
+    },
+    "openflow": {
+      "file": "snapshots/openflow.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/openflow/",
+      "sourceVersion": "2026-03-01T14:26:00.000Z",
+      "capturedAt": "2026-10-26T03:47:57.721Z"
+    },
+    "pcmr-store": {
+      "file": "snapshots/pcmr-store.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/pcmr-store/",
+      "sourceVersion": "2026-07-29T20:13:00.000Z",
+      "capturedAt": "2026-10-26T03:48:00.121Z"
+    },
+    "permitping": {
+      "file": "snapshots/permitping.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/permitping/",
+      "sourceVersion": "2026-09-17T03:34:00.000Z",
+      "capturedAt": "2026-10-26T03:48:02.335Z"
+    },
+    "pl-connections": {
+      "file": "snapshots/pl-connections.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/pl-connections/",
+      "sourceVersion": "2026-10-01T11:04:00.000Z",
+      "capturedAt": "2026-10-26T03:48:04.515Z"
+    },
+    "sec10": {
+      "file": "snapshots/sec10.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/sec10/",
+      "sourceVersion": "2026-03-01T15:52:00.000Z",
+      "capturedAt": "2026-10-26T03:48:06.634Z"
+    },
+    "situation-index": {
+      "file": "snapshots/situation-index.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/situation-index/",
+      "sourceVersion": "2026-10-26T03:30:00.000Z",
+      "capturedAt": "2026-10-26T03:48:09.154Z"
+    },
+    "stroller": {
+      "file": "snapshots/stroller.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/stroller/",
+      "sourceVersion": "2026-10-18T19:50:00.000Z",
+      "capturedAt": "2026-10-26T03:48:11.522Z"
+    },
+    "tariffkit": {
+      "file": "snapshots/tariffkit.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/tariffkit/",
+      "sourceVersion": "2026-09-16T18:54:00.000Z",
+      "capturedAt": "2026-10-26T03:48:13.572Z"
+    },
+    "tou-now": {
+      "file": "snapshots/tou-now.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/tou-now/",
+      "sourceVersion": "2026-07-04T01:56:00.000Z",
+      "capturedAt": "2026-10-26T03:48:15.639Z"
+    },
+    "tron-3d": {
+      "file": "snapshots/tron-3d.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/tron-3d/",
+      "sourceVersion": "2026-06-22T18:32:00.000Z",
+      "capturedAt": "2026-10-26T03:48:20.134Z"
+    },
+    "windsurf": {
+      "file": "snapshots/windsurf.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/windsurf/",
+      "sourceVersion": "2026-09-03T04:09:00.000Z",
+      "capturedAt": "2026-10-26T03:48:27.883Z"
+    }
+  }
+}

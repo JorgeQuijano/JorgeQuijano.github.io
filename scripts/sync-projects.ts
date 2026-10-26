@@ -11,13 +11,23 @@ import {
   type PageMeta,
 } from "./lib/projects.ts";
 import { fetchPageMeta, fetchRepos } from "./lib/pages.ts";
+import {
+  applySnapshotImages,
+  readSnapshotManifest,
+  refreshSnapshots,
+  writeSnapshotManifest,
+} from "./lib/snapshots.ts";
 
 const OWNER = "JorgeQuijano";
 const AGGREGATOR_REPO = `${OWNER}.github.io`;
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_FILE = resolve(ROOT, "src/data/projects.generated.json");
 const OVERRIDES_FILE = resolve(ROOT, "data/projects.yml");
+const PUBLIC_DIR = resolve(ROOT, "public");
+const SNAPSHOT_MANIFEST_FILE = resolve(ROOT, "data/snapshots.json");
 const DRY_RUN = process.argv.includes("--dry-run");
+const SKIP_SNAPSHOTS = process.argv.includes("--skip-snapshots");
+const FORCE_SNAPSHOTS = process.argv.includes("--force-snapshots");
 
 async function readOverrides(): Promise<Overrides> {
   try {
@@ -137,6 +147,41 @@ async function main() {
       }
     }
   }
+
+  let snapshots = await readSnapshotManifest(SNAPSHOT_MANIFEST_FILE);
+  if (!SKIP_SNAPSHOTS && !DRY_RUN) {
+    const refresh = await refreshSnapshots({
+      projects: result.data.projects,
+      overrides,
+      manifest: snapshots,
+      publicDir: PUBLIC_DIR,
+      force: FORCE_SNAPSHOTS,
+    });
+    snapshots = refresh.manifest;
+
+    if (refresh.generated.length > 0) {
+      console.log(
+        `\nCaptured ${refresh.generated.length} snapshots: ${refresh.generated.join(
+          ", ",
+        )}`,
+      );
+      await writeSnapshotManifest(SNAPSHOT_MANIFEST_FILE, snapshots);
+    }
+    if (refresh.failed.length > 0) {
+      for (const failure of refresh.failed) {
+        console.warn(
+          `snapshot warning: ${failure.slug} — ${failure.error}`,
+        );
+      }
+    }
+  }
+
+  applySnapshotImages({
+    projects: result.data.projects,
+    overrides,
+    manifest: snapshots,
+    publicDir: PUBLIC_DIR,
+  });
 
   const changed = !existing || !sameContent(existing, result.data);
   const output: ProjectData =
