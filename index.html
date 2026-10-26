@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A live index of Jorge Quijano's GitHub Pages projects — tools, games, references, and experiments."
+    />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#08090a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Jorge Quijano — Project Index" />
+    <meta
+      property="og:description"
+      content="A living index of my GitHub Pages projects — tools, games, references, and experiments."
+    />
+    <meta property="og:url" content="https://jorgequijano.github.io/" />
+    <meta property="og:image" content="https://jorgequijano.github.io/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jorge Quijano — Project Index" />
+    <meta
+      name="twitter:description"
+      content="A living index of my GitHub Pages projects — tools, games, references, and experiments."
+    />
+    <meta name="twitter:image" content="https://jorgequijano.github.io/og.png" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <title>Jorge Quijano — Project Index</title>
+    <script>
+      (function () {
+        try {
+          var forced = new URLSearchParams(location.search).get("theme");
+          var allowed = ["system", "dark", "light"];
+          var choice =
+            allowed.indexOf(forced) >= 0
+              ? forced
+              : localStorage.getItem("jq-theme") || "system";
+          var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var theme = choice === "system" ? (dark ? "dark" : "light") : choice;
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+          document.documentElement.style.colorScheme = "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#projects">Skip to projects</a>
+    <div id="root"></div>
+    <noscript>
+      <div class="noscript">
+        <h1>Jorge Quijano — Project Index</h1>
+        <p>
+          This index needs JavaScript. You can also browse the projects on
+          <a href="https://github.com/JorgeQuijano?tab=repositories">GitHub</a>.
+        </p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

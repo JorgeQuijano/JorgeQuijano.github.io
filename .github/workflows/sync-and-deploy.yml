@@ -1,0 +1,86 @@
+name: Sync projects and deploy
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Every six hours. GitHub schedules are UTC and best-effort.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  sync-build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Sync projects
+        id: sync
+        continue-on-error: true
+        run: npm run projects:sync
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit generated index
+        if: steps.sync.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/projects.generated.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: refresh project index [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No project changes"
+          fi
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BUILD_TIME: ${{ github.run_started_at }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Fail if project sync failed
+        if: steps.sync.outcome == 'failure'
+        run: |
+          echo "::error::Project sync failed. The site was deployed with the last committed index."
+          exit 1

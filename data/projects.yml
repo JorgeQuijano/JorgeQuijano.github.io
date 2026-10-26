@@ -1,0 +1,136 @@
+# Manual curation for the project index.
+# Auto-discovery handles the list. Edit this file for names, categories,
+# descriptions, featured ordering, hidden projects, or manual entries.
+
+projects:
+  situation-index:
+    name: Situation Index
+    category: Finance
+    featured: true
+    order: 1
+    description: "A personal terminal for custom market baskets and the situations behind them."
+
+  food-finder:
+    name: Forkful
+    category: Food & Health
+    featured: true
+    order: 2
+    description: "A GTA and London, Ontario guide to healthier dishes, nutrition breakdowns, transparent scoring, and better meals."
+
+  windsurf:
+    name: Windsurf
+    category: Experiments
+    featured: true
+    order: 3
+    description: "A real-time 3D wind tunnel and CFD simulator in a single HTML file, built with WebGPU and WebGL2."
+
+  football-manager:
+    name: Touchline
+    category: Games
+    featured: true
+    order: 4
+    description: "A mobile-first football manager game — build a squad, pick a system, and chase the title."
+
+  stroller:
+    name: Stroller Quick Guide
+    category: Reference
+    description: "A mobile quick guide to the Evenflo stroller and travel system."
+
+  nbsleep:
+    name: Baby Sleep
+    category: Reference
+    description: "Baby sleep, week by week — a researched reference for 0–12 months, drawing on AAP, CDC, NHS, Stanford, and sleep guides."
+
+  pl-connections:
+    name: Club Connections
+    category: Sports
+    description: "Which current Premier League players have history with each club — first team or academy."
+
+  bottle-washer-pro-manual:
+    name: Bottle Washer Pro Manual
+    category: Reference
+    description: "An interactive mobile manual for the Baby Brezza Bottle Washer Pro, with light/dark themes and offline support."
+
+  code10:
+    name: "Power of 10: TypeScript"
+    category: Tools
+    description: "Safety-critical coding rules for TypeScript."
+
+  docready:
+    name: DocReady
+    category: Tools
+    description: "An in-browser PDF accessibility checker for tagged structure, language, alt text, headings, forms, and scans. Nothing is uploaded."
+
+  permitping:
+    name: PermitPing
+    category: Local
+    description: "A Chicago permit radar for new construction and renovation permits, refreshed daily from city open data."
+
+  tariffkit:
+    name: TariffKit
+    category: Tools
+    description: "Documented US import classification for Etsy, Amazon, and Shopify sellers — real HTS codes with the reasoning written down."
+
+  duty-decoder:
+    name: Duty Decoder
+    category: Tools
+    description: "A Canada-first cross-border fee calculator: estimate duties, taxes, and courier fees before buying — or decode a charge you already got."
+
+  lonradio:
+    name: London Radio
+    category: Local
+    description: "Live scanner and ATC audio for London, Ontario — CYXU Tower/Ground, London Fire, OPP, and Weatheradio."
+
+  lofipro:
+    name: Lofipro
+    category: Audio & Visual
+    description: "An endless, never-repeating lo-fi radio station generated live in your browser. Everyone who tunes in hears the same song at the same time."
+
+  lofibeats:
+    name: Lofi Beats
+    category: Audio & Visual
+    description: "Infinite random lofi radio, generated live in your browser."
+
+  pcmr-store:
+    name: PCMR
+    category: Shop
+    description: "Vintage-inspired apparel, made for the culture. Coming soon."
+
+  tou-now:
+    name: TOU Now
+    category: Tools
+    description: "Live Ontario Time-of-Use electricity rates for London Hydro."
+
+  tron-3d:
+    name: TRON 3D
+    category: Games
+    description: "Tron light cycles in 3D with decaying trails — a single HTML file that runs anywhere."
+
+  london-on-traffic-map:
+    name: London Traffic Map
+    category: Local
+    description: "An interactive traffic map for London, Ontario."
+
+  sec10:
+    name: Sec10
+    category: Tools
+    description: "Ten security rules for safe code."
+
+  openflow:
+    name: OpenFlow
+    category: Experiments
+    description: "A GitHub issue auto-fix workflow."
+
+  jquijano.github.io:
+    hidden: true
+
+# Manual entries also work for custom domains or non-GitHub-Pages projects:
+#
+#  my-other-project:
+#    manual: true
+#    name: My Other Project
+#    description: "Hosted somewhere else."
+#    url: https://example.com/
+#    repoUrl: https://github.com/JorgeQuijano/my-other-project
+#    category: Experiments
+#    featured: false

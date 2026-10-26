@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#08090a"/>
+  <g stroke="#20252a" stroke-width="1" opacity="0.85">
+    <path d="M0 80H1200M0 160H1200M0 240H1200M0 320H1200M0 400H1200M0 480H1200M0 560H1200"/>
+    <path d="M80 0V630M160 0V630M240 0V630M320 0V630M400 0V630M480 0V630M560 0V630M640 0V630M720 0V630M800 0V630M880 0V630M960 0V630M1040 0V630M1120 0V630"/>
+  </g>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#glow)" opacity="0.8"/>
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(180 30) scale(780 360)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffb000" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#ffb000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="80" y="72" width="60" height="60" fill="#0d0f11" stroke="#333a41"/>
+  <path d="M90 120V96h6v24h-6zm10 0V86h6v34h-6zm10 0V104h6v16h-6zm10 0V80h6v40h-6z" fill="#ffb000"/>
+
+  <text x="158" y="112" fill="#e8e6e3" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="24" font-weight="600" letter-spacing="5">JORGE QUIJANO</text>
+  <text x="80" y="200" fill="#8b949e" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="13" letter-spacing="3">PERSONAL PROJECT INDEX / LIVE FROM GITHUB PAGES</text>
+
+  <text x="80" y="320" fill="#e8e6e3" font-family="IBM Plex Sans, DejaVu Sans, sans-serif" font-size="82" font-weight="700" letter-spacing="-4">Things I've <tspan fill="#ffb000">built.</tspan></text>
+  <text x="80" y="374" fill="#8b949e" font-family="IBM Plex Sans, DejaVu Sans, sans-serif" font-size="24">A living index of my GitHub Pages projects — tools, games,</text>
+  <text x="80" y="408" fill="#8b949e" font-family="IBM Plex Sans, DejaVu Sans, sans-serif" font-size="24">references, and experiments.</text>
+
+  <rect x="80" y="500" width="1040" height="1" fill="#333a41"/>
+  <text x="80" y="548" fill="#ffb000" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="15" letter-spacing="2">JORGEQUIJANO.GITHUB.IO</text>
+  <text x="1120" y="548" fill="#5c6370" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="13" text-anchor="end" letter-spacing="2">22 LIVE PAGES / 10 CATEGORIES</text>
+</svg>
