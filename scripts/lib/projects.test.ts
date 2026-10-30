@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { Project, ProjectData } from "../../src/lib/types";
 import { parseLastModified } from "./pages.ts";
 import {
   buildProjectData,
+  MAX_OFFLINE_CHECKS,
   parsePageMeta,
   repoPageUrl,
   titleize,
@@ -42,6 +44,59 @@ function page(overrides: Partial<PageMeta> = {}): PageMeta {
     error: null,
     ...overrides,
   };
+}
+
+function previousProject(overrides: Partial<Project> = {}): Project {
+  return {
+    id: 1,
+    slug: "test-project",
+    name: "Test Project",
+    description: "A test project",
+    url: "https://jorgequijano.github.io/test-project/",
+    repoUrl: "https://github.com/JorgeQuijano/test-project",
+    language: "TypeScript",
+    topics: ["testing"],
+    stars: 0,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    pushedAt: "2026-01-02T00:00:00.000Z",
+    deployedAt: "2026-01-03T00:00:00.000Z",
+    category: "Tools",
+    featured: true,
+    order: 5,
+    archived: false,
+    image: "/snapshots/test-project.jpg",
+    manual: false,
+    live: true,
+    ...overrides,
+  };
+}
+
+function previousData(projects: Project[]): ProjectData {
+  return {
+    version: 1,
+    owner: "JorgeQuijano",
+    syncedAt: "2026-01-03T00:00:00.000Z",
+    projects,
+    stats: {
+      totalRepos: projects.length,
+      pagesEnabled: projects.length,
+      live: projects.filter((project) => project.live).length,
+      hidden: 0,
+      unreachable: [],
+    },
+  };
+}
+
+function failedPage(): PageMeta {
+  return page({
+    live: false,
+    status: 404,
+    title: null,
+    description: null,
+    image: null,
+    deployedAt: null,
+    error: "HTTP 404",
+  });
 }
 
 describe("parsePageMeta", () => {
@@ -159,6 +214,130 @@ describe("buildProjectData", () => {
 
     expect(result.data.projects).toHaveLength(0);
     expect(result.data.stats.unreachable).toEqual(["down"]);
+  });
+
+  it("keeps a previously live project through a short outage", () => {
+    const result = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", failedPage()]]),
+      overrides: {},
+      now: "2026-10-26T00:00:00.000Z",
+      previous: previousData([previousProject()]),
+    });
+
+    expect(result.data.projects).toHaveLength(1);
+    expect(result.data.projects[0]).toMatchObject({
+      slug: "test-project",
+      name: "Test Project",
+      description: "A test project",
+      url: "https://jorgequijano.github.io/test-project/",
+      image: "/snapshots/test-project.jpg",
+      deployedAt: "2026-01-03T00:00:00.000Z",
+      category: "Tools",
+      featured: true,
+      order: 5,
+      live: false,
+      offlineSince: "2026-10-26T00:00:00.000Z",
+      missedChecks: 1,
+    });
+    expect(result.data.stats.unreachable).toEqual(["test-project"]);
+    expect(result.data.stats.live).toBe(0);
+  });
+
+  it("increments missed checks and clears them after recovery", () => {
+    const retained = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", failedPage()]]),
+      overrides: {},
+      now: "2026-10-26T01:00:00.000Z",
+      previous: previousData([
+        previousProject({
+          live: false,
+          offlineSince: "2026-10-26T00:00:00.000Z",
+          missedChecks: 2,
+        }),
+      ]),
+    });
+    expect(retained.data.projects[0]).toMatchObject({
+      live: false,
+      offlineSince: "2026-10-26T00:00:00.000Z",
+      missedChecks: 3,
+    });
+
+    const recovered = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", page()]]),
+      overrides: {},
+      now: "2026-10-26T02:00:00.000Z",
+      previous: previousData([
+        previousProject({
+          live: false,
+          offlineSince: "2026-10-26T00:00:00.000Z",
+          missedChecks: 2,
+        }),
+      ]),
+    });
+    expect(recovered.data.projects[0].live).toBe(true);
+    expect(recovered.data.projects[0].offlineSince).toBeUndefined();
+    expect(recovered.data.projects[0].missedChecks).toBeUndefined();
+  });
+
+  it("drops a retained project after the grace period", () => {
+    const result = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", failedPage()]]),
+      overrides: {},
+      now: "2026-10-26T00:00:00.000Z",
+      previous: previousData([
+        previousProject({
+          live: false,
+          offlineSince: "2026-10-25T00:00:00.000Z",
+          missedChecks: MAX_OFFLINE_CHECKS,
+        }),
+      ]),
+    });
+
+    expect(result.data.projects).toHaveLength(0);
+    expect(result.data.stats.unreachable).toEqual(["test-project"]);
+  });
+
+  it("keeps an offline project when includeWhenOffline is set", () => {
+    const result = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", failedPage()]]),
+      overrides: {
+        "test-project": { includeWhenOffline: true, category: "Tools" },
+      },
+      now: "2026-10-26T00:00:00.000Z",
+    });
+
+    expect(result.data.projects).toHaveLength(1);
+    expect(result.data.projects[0]).toMatchObject({
+      slug: "test-project",
+      live: false,
+      category: "Tools",
+      offlineSince: "2026-10-26T00:00:00.000Z",
+      missedChecks: 1,
+    });
+  });
+
+  it("does not add a project that has never been live", () => {
+    const result = buildProjectData({
+      owner: "JorgeQuijano",
+      repos: [repo()],
+      pages: new Map([["test-project", failedPage()]]),
+      overrides: {},
+      now: "2026-10-26T00:00:00.000Z",
+      previous: previousData([]),
+    });
+
+    expect(result.data.projects).toHaveLength(0);
+    expect(result.data.stats.unreachable).toEqual(["test-project"]);
   });
 
   it("supports manual entries", () => {

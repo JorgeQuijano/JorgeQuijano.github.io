@@ -57,7 +57,11 @@ export type BuildInput = {
   overrides: Overrides;
   now: string;
   aggregatorRepoName?: string;
+  /** Last generated index, used to keep a project through a transient outage. */
+  previous?: ProjectData | null;
 };
+
+export const MAX_OFFLINE_CHECKS = 3;
 
 export type BuildResult = {
   data: ProjectData;
@@ -221,11 +225,15 @@ export function buildProjectData({
   overrides,
   now,
   aggregatorRepoName = `${owner}.github.io`,
+  previous,
 }: BuildInput): BuildResult {
   const warnings: string[] = [];
   const unreachable: string[] = [];
   const projects: Project[] = [];
   const usedOverrides = new Set<string>();
+  const previousBySlug = new Map(
+    (previous?.projects ?? []).map((project) => [project.slug, project]),
+  );
   let hidden = 0;
 
   const candidates = repos.filter(
@@ -252,22 +260,42 @@ export function buildProjectData({
     }
 
     const page = pages.get(repo.name) ?? EMPTY_PAGE;
-    if (!page.live) {
+    const previousCandidate = previousBySlug.get(repo.name.toLowerCase());
+    // A re-created repository can reuse a name but not its numeric ID.
+    const previousProject =
+      previousCandidate?.id === repo.id ? previousCandidate : undefined;
+    const offline = !page.live;
+
+    if (offline) {
       unreachable.push(repo.name);
-      if (!override?.includeWhenOffline) continue;
     }
 
+    const missedChecks = offline
+      ? (previousProject?.missedChecks ?? 0) + 1
+      : 0;
+
+    if (offline && !override?.includeWhenOffline) {
+      // Never introduce a project while its page is down. Keep an existing
+      // project through a few transient failures, then remove it from the index.
+      if (!previousProject || missedChecks > MAX_OFFLINE_CHECKS) continue;
+    }
+
+    const fallback = offline ? previousProject : undefined;
     const url =
       override?.url ??
+      fallback?.url ??
       (repo.homepage?.startsWith(`https://${owner.toLowerCase()}.github.io/`)
         ? repo.homepage
         : repoPageUrl(owner, repo.name));
 
-    projects.push({
+    const project: Project = {
       id: repo.id,
       slug: repo.name.toLowerCase(),
-      name: override?.name?.trim() || pageName(repo, page),
-      description: override?.description?.trim() ?? pageDescription(repo, page),
+      name: override?.name?.trim() || fallback?.name || pageName(repo, page),
+      description:
+        override?.description?.trim() ??
+        fallback?.description ??
+        pageDescription(repo, page),
       url,
       repoUrl: repo.html_url,
       language: override?.language ?? repo.language,
@@ -275,15 +303,22 @@ export function buildProjectData({
       stars: override?.stars ?? repo.stargazers_count,
       createdAt: repo.created_at,
       pushedAt: repo.pushed_at,
-      deployedAt: page.deployedAt,
-      category: override?.category?.trim() || "Other",
-      featured: override?.featured ?? false,
-      order: override?.order ?? 1000,
+      deployedAt: fallback ? fallback.deployedAt : page.deployedAt,
+      category: override?.category?.trim() || fallback?.category || "Other",
+      featured: override?.featured ?? fallback?.featured ?? false,
+      order: override?.order ?? fallback?.order ?? 1000,
       archived: repo.archived,
-      image: override?.image ?? page.image,
+      image: override?.image ?? fallback?.image ?? page.image,
       manual: false,
       live: page.live,
-    });
+    };
+
+    if (offline) {
+      project.offlineSince = previousProject?.offlineSince ?? now;
+      project.missedChecks = missedChecks;
+    }
+
+    projects.push(project);
   }
 
   let manualIndex = 0;

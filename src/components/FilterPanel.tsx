@@ -1,5 +1,4 @@
 import type { RefObject } from "react";
-import { RotateCcw, Search, X } from "lucide-react";
 import { classNames } from "../lib/format";
 
 type FilterPanelProps = {
@@ -48,7 +47,15 @@ export default function FilterPanel({
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="field flex h-10 flex-1 items-center gap-2 px-3">
-          <Search size={14} strokeWidth={1.8} className="shrink-0 text-dim" />
+          <span className="shrink-0 text-[12px] text-accent" aria-hidden="true">
+            $
+          </span>
+          <span
+            className="hidden shrink-0 text-[10px] uppercase tracking-[0.08em] text-dim sm:inline"
+            aria-hidden="true"
+          >
+            grep
+          </span>
           <label htmlFor="project-search" className="sr-only">
             Search projects
           </label>
@@ -58,58 +65,68 @@ export default function FilterPanel({
             type="search"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search projects, tools, topics…"
+            placeholder="search projects, tools, topics…"
             autoComplete="off"
             spellCheck={false}
-            className="h-full w-full border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-dim"
+            className="h-full w-full min-w-0 border-0 bg-transparent text-[12px] text-ink outline-none placeholder:text-dim"
           />
           {query ? (
             <button
               type="button"
               onClick={() => onQueryChange("")}
               aria-label="Clear search"
-              className="grid h-6 w-6 shrink-0 place-items-center text-dim hover:text-ink"
+              className="shrink-0 text-[10px] text-dim hover:text-accent"
             >
-              <X size={13} />
+              [x]
             </button>
           ) : (
-            <kbd className="hidden shrink-0 border border-line px-1.5 py-0.5 font-mono text-[9px] text-dim sm:block">
+            <kbd className="hidden shrink-0 border border-line px-1.5 py-0.5 text-[10px] text-dim sm:block">
               /
             </kbd>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 lg:flex lg:shrink-0">
-          <label className="sr-only" htmlFor="language-filter">
-            Filter by language
-          </label>
-          <select
-            id="language-filter"
-            value={language}
-            onChange={(event) => onLanguageChange(event.target.value)}
-            className="select-field h-10 px-3 pr-8"
-          >
-            <option value="All">All languages</option>
-            {languages.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:shrink-0">
+          <div className="select-wrap">
+            <label className="sr-only" htmlFor="language-filter">
+              Filter by language
+            </label>
+            <span className="select-prefix" aria-hidden="true">
+              --lang
+            </span>
+            <select
+              id="language-filter"
+              value={language}
+              onChange={(event) => onLanguageChange(event.target.value)}
+              className="select-field"
+            >
+              <option value="All">all</option>
+              {languages.map((item) => (
+                <option key={item} value={item}>
+                  {item.toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label className="sr-only" htmlFor="sort-order">
-            Sort projects
-          </label>
-          <select
-            id="sort-order"
-            value={sort}
-            onChange={(event) => onSortChange(event.target.value)}
-            className="select-field h-10 px-3 pr-8"
-          >
-            <option value="recent">Recently updated</option>
-            <option value="name">Name A–Z</option>
-            <option value="added">Recently added</option>
-          </select>
+          <div className="select-wrap">
+            <label className="sr-only" htmlFor="sort-order">
+              Sort projects
+            </label>
+            <span className="select-prefix" aria-hidden="true">
+              --sort
+            </span>
+            <select
+              id="sort-order"
+              value={sort}
+              onChange={(event) => onSortChange(event.target.value)}
+              className="select-field"
+            >
+              <option value="recent">recent</option>
+              <option value="name">name</option>
+              <option value="added">added</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -126,14 +143,14 @@ export default function FilterPanel({
               aria-pressed={isActive}
               className="chip"
             >
-              {chip}
+              {chip.toLowerCase()}
               <span
                 className={classNames(
-                  "tabular text-[8px]",
-                  isActive ? "text-amber/70" : "text-dim",
+                  "tabular",
+                  isActive ? "text-bg" : "text-dim",
                 )}
               >
-                {count}
+                {count.toString().padStart(2, "0")}
               </span>
             </button>
           );
@@ -142,20 +159,22 @@ export default function FilterPanel({
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
         <p
-          className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted"
+          className="text-[10px] uppercase tracking-[0.1em] text-muted"
           aria-live="polite"
         >
-          Showing <span className="text-ink">{filtered}</span> of {total} projects
+          <span className="text-accent" aria-hidden="true">
+            ▸
+          </span>{" "}
+          showing <span className="text-ink">{filtered}</span> of {total} projects
         </p>
 
         {active && (
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted hover:text-amber"
+            className="text-[10px] uppercase tracking-[0.1em] text-muted hover:text-accent"
           >
-            <RotateCcw size={11} />
-            Reset filters
+            [ reset --filters ]
           </button>
         )}
       </div>

@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
 import { initials } from "../lib/format";
 import type { Project } from "../lib/types";
 
 const PALETTES: Array<[string, string, string]> = [
-  ["#ffb000", "#9a3412", "#1c1917"],
-  ["#4dd0e1", "#0e7490", "#082f49"],
-  ["#c084fc", "#6d28d9", "#1e1b4b"],
-  ["#34d399", "#047857", "#052e2b"],
-  ["#fb923c", "#b91c1c", "#1c1917"],
-  ["#60a5fa", "#1d4ed8", "#111827"],
-  ["#f472b6", "#be185d", "#1f0a1a"],
+  ["#5cff8f", "#0b3d1d", "#050806"],
+  ["#9dffb8", "#0f5132", "#06110a"],
+  ["#38d96b", "#123c1f", "#040906"],
+  ["#b6ffcb", "#14532d", "#07110a"],
+  ["#4ff08a", "#0a2e17", "#050806"],
 ];
 
 function hash(value: string): number {
@@ -29,13 +26,41 @@ export default function ProjectPreview({
   featured?: boolean;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [variantsFailed, setVariantsFailed] = useState(false);
   const palette = PALETTES[hash(project.slug) % PALETTES.length];
 
   useEffect(() => {
     setImageFailed(false);
+    setVariantsFailed(false);
   }, [project.image]);
 
   const showImage = Boolean(project.image) && !imageFailed;
+  const localSnapshot =
+    project.image?.startsWith("/snapshots/") &&
+    project.image.endsWith(".jpg")
+      ? project.image
+      : null;
+  const imageBase = localSnapshot ? localSnapshot.slice(0, -4) : null;
+  const useVariants = Boolean(imageBase) && !variantsFailed;
+  const sizes = featured
+    ? "(min-width: 1500px) 350px, (min-width: 1280px) calc((100vw - 100px) / 4), (min-width: 640px) calc(50vw - 32px), calc(100vw - 32px)"
+    : "(min-width: 1500px) 470px, (min-width: 1280px) calc((100vw - 88px) / 3), (min-width: 640px) calc(50vw - 32px), calc(100vw - 32px)";
+
+  const image = project.image ? (
+    <img
+      src={project.image}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      width={1200}
+      height={750}
+      referrerPolicy="no-referrer"
+      onError={() => {
+        if (useVariants) setVariantsFailed(true);
+        else setImageFailed(true);
+      }}
+    />
+  ) : null;
 
   return (
     <div
@@ -46,40 +71,33 @@ export default function ProjectPreview({
         background: `linear-gradient(135deg, ${palette[0]} 0%, ${palette[1]} 54%, ${palette[2]} 100%)`,
       }}
     >
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        aria-hidden="true"
+      >
         <span className={`preview-initials ${featured ? "text-7xl" : "text-6xl"}`}>
           {initials(project.name)}
         </span>
       </div>
 
-      {showImage && (
-        <img
-          src={project.image ?? ""}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setImageFailed(true)}
-        />
-      )}
-
-      <div className="preview-scrim" />
-
-      <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between p-3">
-        <span className="inline-flex items-center gap-1.5 border border-white/30 bg-black/45 px-2 py-1 font-mono text-[8px] uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-          <span
-            className={
-              project.live
-                ? "live-dot"
-                : "h-1.5 w-1.5 rounded-full bg-amber"
-            }
-          />
-          {project.live ? "Live" : "Check failed"}
-        </span>
-        <span className="grid h-7 w-7 place-items-center border border-white/25 bg-black/40 text-white backdrop-blur-sm transition-colors group-hover:border-white/50 group-hover:bg-black/55">
-          <ArrowUpRight size={13} strokeWidth={1.8} />
-        </span>
-      </div>
+      {showImage &&
+        (useVariants && imageBase ? (
+          <picture>
+            <source
+              type="image/avif"
+              srcSet={`${imageBase}-480.avif 480w, ${imageBase}-960.avif 960w`}
+              sizes={sizes}
+            />
+            <source
+              type="image/webp"
+              srcSet={`${imageBase}-480.webp 480w, ${imageBase}-960.webp 960w`}
+              sizes={sizes}
+            />
+            {image}
+          </picture>
+        ) : (
+          image
+        ))}
     </div>
   );
 }

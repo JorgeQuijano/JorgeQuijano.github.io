@@ -1,13 +1,5 @@
-import {
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { ArrowUpRight, Code2, Sparkles } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useRef } from "react";
 import BrandMark from "./components/BrandMark";
-import GithubIcon from "./components/GithubIcon";
 import EmptyState from "./components/EmptyState";
 import FilterPanel from "./components/FilterPanel";
 import ProjectCard from "./components/ProjectCard";
@@ -20,9 +12,11 @@ import {
   projectTimestamp,
 } from "./lib/data";
 import { formatDate, relativeTime } from "./lib/format";
+import {
+  useFilterState,
+  type SortOrder,
+} from "./lib/filters";
 import { useTheme } from "./lib/theme";
-
-type SortOrder = "recent" | "name" | "added";
 
 function sortProjects(
   projects: typeof data.projects,
@@ -46,19 +40,42 @@ function sortProjects(
   });
 }
 
+function Stat({ value, label }: { value: number | string; label: string }) {
+  return (
+    <span>
+      <span className="text-dim" aria-hidden="true">
+        [
+      </span>
+      <strong className="font-medium text-ink">{value}</strong>
+      <span className="text-dim" aria-hidden="true">
+        ]
+      </span>{" "}
+      {label}
+    </span>
+  );
+}
+
 export default function App() {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
-  const [language, setLanguage] = useState("All");
-  const [sort, setSort] = useState<SortOrder>("recent");
+  const {
+    filters,
+    setFilters,
+    resetFilters: resetFilterState,
+    active: filtersActive,
+  } = useFilterState(categories, languages);
+  const { query, category, language, sort } = filters;
   const deferredQuery = useDeferredValue(query);
   const searchRef = useRef<HTMLInputElement>(null);
   const { choice, resolved } = useTheme();
 
   const buildTime = import.meta.env.VITE_BUILD_TIME || data.syncedAt;
+  const syncFailed = import.meta.env.VITE_SYNC_STATUS === "failure";
   const liveCount = data.stats.live;
   const unreachable = data.stats.unreachable.length;
-  const operational = unreachable === 0;
+  const operational = !syncFailed && unreachable === 0;
+  const lastCheckedAt = syncFailed ? data.syncedAt : buildTime;
+  const resolvedLabel = resolved === "dark" ? "term" : "paper";
+  const themeDisplay =
+    choice === "system" ? `sys → ${resolvedLabel}` : resolvedLabel;
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
@@ -97,12 +114,6 @@ export default function App() {
     return sortProjects(matches, sort, category);
   }, [deferredQuery, category, language, sort]);
 
-  const filtersActive =
-    query.trim() !== "" ||
-    category !== "All" ||
-    language !== "All" ||
-    sort !== "recent";
-
   const showFeatured =
     query.trim() === "" &&
     category === "All" &&
@@ -110,10 +121,7 @@ export default function App() {
     featuredProjects.length > 0;
 
   const resetFilters = () => {
-    setQuery("");
-    setCategory("All");
-    setLanguage("All");
-    setSort("recent");
+    resetFilterState();
     searchRef.current?.focus();
   };
 
@@ -147,20 +155,20 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-[1500px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 border-b border-line bg-bg">
+        <div className="mx-auto flex h-14 w-full max-w-[1500px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <a
             href="/"
             className="flex min-w-0 items-center gap-2.5"
             aria-label="Project Index home"
           >
-            <BrandMark />
+            <BrandMark className="h-7 w-7" />
             <span className="min-w-0">
-              <span className="block truncate font-mono text-[12px] font-semibold leading-none tracking-[0.1em] text-ink sm:text-[13px] sm:tracking-[0.14em]">
-                JORGE<span className="text-amber">QUIJANO</span>
+              <span className="block truncate text-[11px] font-medium leading-none tracking-[0.08em] text-ink sm:text-[13px] sm:tracking-[0.1em]">
+                JORGE<span className="text-accent">@GITHUB</span>
               </span>
-              <span className="mt-1 hidden font-mono text-[8px] uppercase leading-none tracking-[0.24em] text-muted sm:block">
-                Project Index
+              <span className="mt-1 hidden text-[10px] leading-none tracking-[0.18em] text-muted sm:block">
+                ~/project-index
               </span>
             </span>
           </a>
@@ -170,11 +178,12 @@ export default function App() {
               href="https://github.com/JorgeQuijano"
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted hover:text-amber sm:flex"
+              className="hidden items-center gap-1 text-[10px] uppercase tracking-[0.1em] text-muted hover:text-accent sm:flex"
             >
-              <GithubIcon size={13} />
-              GitHub
-              <ArrowUpRight size={10} />
+              github
+              <span aria-hidden="true" className="text-dim">
+                ↗
+              </span>
             </a>
             <ThemeSelector />
           </div>
@@ -183,100 +192,125 @@ export default function App() {
 
       <section className="relative overflow-hidden border-b border-line">
         <div className="hero-grid pointer-events-none absolute inset-0" />
-        <div className="relative mx-auto grid w-full max-w-[1500px] gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-end lg:gap-16 lg:px-8 lg:py-20">
+        <div className="relative mx-auto grid w-full max-w-[1500px] gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end lg:gap-16 lg:px-8 lg:py-20">
           <div>
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">
+            <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-muted">
               <span className="live-dot" />
-              Live from GitHub Pages
+              live from github pages
               <span className="hidden h-px w-8 bg-line-strong sm:block" />
               <span className="hidden text-dim sm:inline">
                 /{data.owner.toLowerCase()}
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-4xl text-balance text-[clamp(3rem,7vw,6.4rem)] font-semibold leading-[0.92] tracking-[-0.065em] text-ink">
-              Things I've <span className="text-amber">built.</span>
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-[14px] leading-relaxed text-muted sm:text-[15px]">
-              A living index of my GitHub Pages projects — tools, games,
-              references, and experiments. It discovers new pages automatically
-              and keeps the list in sync with GitHub.
+            <p className="prompt mt-6">
+              <span className="prompt-user">jorge@github</span>
+              <span className="prompt-sep">:</span>
+              <span className="prompt-path">~</span>
+              <span className="prompt-sep">$</span>
+              <span>./index --all</span>
             </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
-              <span>
-                <strong className="font-medium text-ink">{data.projects.length}</strong>{" "}
-                projects
+            <h1 className="display glow mt-3 max-w-4xl text-balance text-[clamp(2.8rem,7vw,6.2rem)] leading-[0.95] text-ink">
+              Things I've <span className="text-accent">built.</span>
+              <span className="cursor" aria-hidden="true" />
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-[13px] leading-[1.8] text-muted sm:text-[14px]">
+              <span className="text-dim"># </span>A living index of my GitHub
+              Pages projects — tools, games, references, and experiments. It
+              discovers new pages automatically and keeps the list in sync with
+              GitHub.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4 text-[10px] uppercase tracking-[0.1em] text-muted">
+              <Stat value={data.projects.length} label="projects" />
+              <span className="text-line-strong" aria-hidden="true">
+                ·
               </span>
-              <span className="h-1 w-1 rounded-full bg-line-strong" />
-              <span>
-                <strong className="font-medium text-ink">{liveCount}</strong> live
+              <Stat value={liveCount} label="live" />
+              <span className="text-line-strong" aria-hidden="true">
+                ·
               </span>
-              <span className="h-1 w-1 rounded-full bg-line-strong" />
-              <span>
-                <strong className="font-medium text-ink">{categories.length}</strong>{" "}
-                categories
+              <Stat value={categories.length} label="categories" />
+              <span className="text-line-strong" aria-hidden="true">
+                ·
               </span>
-              <span className="h-1 w-1 rounded-full bg-line-strong" />
-              <span title={formatDate(buildTime, "time")}>
-                checked {relativeTime(buildTime)}
+              <span title={formatDate(lastCheckedAt, "time")}>
+                {syncFailed ? "data from " : "checked "}
+                {relativeTime(lastCheckedAt)}
               </span>
             </div>
           </div>
 
           <aside className="panel relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
-              <span className="kicker">Index status</span>
+            <div className="panel-header">
+              <span>system status</span>
               <span
-                className={`inline-flex items-center gap-1.5 font-mono text-[8px] uppercase tracking-[0.1em] ${
-                  operational ? "text-up" : "text-amber"
+                className={`inline-flex items-center gap-1.5 ${
+                  operational ? "text-up" : "text-warn"
                 }`}
               >
                 <span
                   className="status-dot"
                   data-tone={operational ? undefined : "warn"}
                 />
-                {operational ? "Operational" : "Degraded"}
+                {operational ? "operational" : "degraded"}
               </span>
             </div>
 
             <div className="grid grid-cols-2 divide-x divide-line border-b border-line">
               <div className="px-4 py-4">
-                <span className="kicker">Live pages</span>
-                <div className="mt-2 font-mono text-[2.4rem] leading-none tracking-[-0.06em] text-ink">
+                <span className="kicker">live pages</span>
+                <div className="mt-2 text-[2.4rem] leading-none tracking-[-0.06em] text-ink">
                   {liveCount.toString().padStart(2, "0")}
                 </div>
               </div>
               <div className="px-4 py-4">
-                <span className="kicker">Categories</span>
-                <div className="mt-2 font-mono text-[2.4rem] leading-none tracking-[-0.06em] text-ink">
+                <span className="kicker">categories</span>
+                <div className="mt-2 text-[2.4rem] leading-none tracking-[-0.06em] text-ink">
                   {categories.length.toString().padStart(2, "0")}
                 </div>
               </div>
             </div>
 
-            <dl className="divide-y divide-line font-mono text-[9px] uppercase tracking-[0.08em]">
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <dt className="text-dim">Source</dt>
-                <dd className="truncate text-muted">github.com/JorgeQuijano</dd>
+            <dl className="divide-y divide-line text-[10px] uppercase tracking-[0.08em]">
+              <div className="flex items-baseline gap-2 px-4 py-2.5">
+                <dt className="shrink-0 text-dim">source</dt>
+                <span className="leader" aria-hidden="true" />
+                <dd className="min-w-0 truncate text-muted">
+                  github.com/{data.owner}
+                </dd>
               </div>
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <dt className="text-dim">Last build</dt>
-                <dd className="text-muted" title={formatDate(buildTime, "time")}>
+              <div className="flex items-baseline gap-2 px-4 py-2.5">
+                <dt className="shrink-0 text-dim">sync</dt>
+                <span className="leader" aria-hidden="true" />
+                <dd className={syncFailed ? "text-warn" : "text-up"}>
+                  {syncFailed ? "[fail] last good data" : "[ok]"}
+                </dd>
+              </div>
+              <div className="flex items-baseline gap-2 px-4 py-2.5">
+                <dt className="shrink-0 text-dim">last build</dt>
+                <span className="leader" aria-hidden="true" />
+                <dd
+                  className="whitespace-nowrap text-muted"
+                  title={formatDate(buildTime, "time")}
+                >
                   {formatDate(buildTime, "short")}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <dt className="text-dim">Theme</dt>
-                <dd className="text-muted">
-                  {choice === "system" ? `System → ${resolved}` : resolved}
-                </dd>
+              <div className="flex items-baseline gap-2 px-4 py-2.5">
+                <dt className="shrink-0 text-dim">theme</dt>
+                <span className="leader" aria-hidden="true" />
+                <dd className="whitespace-nowrap text-muted">{themeDisplay}</dd>
               </div>
               {unreachable > 0 && (
-                <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <dt className="text-dim">Skipped</dt>
-                  <dd className="text-amber">{unreachable} unreachable</dd>
+                <div className="flex items-baseline gap-2 px-4 py-2.5">
+                  <dt className="shrink-0 text-dim">offline</dt>
+                  <span className="leader" aria-hidden="true" />
+                  <dd className="whitespace-nowrap text-warn">
+                    [{unreachable}] unreachable
+                  </dd>
                 </div>
               )}
             </dl>
@@ -290,16 +324,16 @@ export default function App() {
       >
         <FilterPanel
           query={query}
-          onQueryChange={setQuery}
+          onQueryChange={(value) => setFilters({ query: value })}
           category={category}
-          onCategoryChange={setCategory}
+          onCategoryChange={(value) => setFilters({ category: value })}
           categories={categories}
           categoryCounts={categoryCounts}
           language={language}
-          onLanguageChange={setLanguage}
+          onLanguageChange={(value) => setFilters({ language: value })}
           languages={languages}
           sort={sort}
-          onSortChange={(value) => setSort(value as SortOrder)}
+          onSortChange={(value) => setFilters({ sort: value as SortOrder })}
           total={data.projects.length}
           filtered={filtered.length}
           active={filtersActive}
@@ -309,22 +343,21 @@ export default function App() {
 
         {showFeatured && (
           <section className="mt-9" aria-labelledby="featured-heading">
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex items-end justify-between gap-4 border-b border-line pb-2">
               <div>
-                <span className="kicker kicker-amber">Selected work</span>
+                <span className="kicker kicker-accent">selected work</span>
                 <h2
                   id="featured-heading"
-                  className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink"
+                  className="mt-1 text-[20px] font-medium tracking-[-0.03em] text-ink"
                 >
                   Featured
                 </h2>
               </div>
-              <span className="hidden items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-dim sm:flex">
-                <Sparkles size={11} />
-                Curated
+              <span className="hidden text-[10px] uppercase tracking-[0.1em] text-dim sm:block">
+                [{featuredProjects.length}] curated
               </span>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {featuredProjects.map((project) => (
                 <ProjectCard key={project.slug} project={project} featured />
               ))}
@@ -336,26 +369,26 @@ export default function App() {
           className={showFeatured ? "mt-10" : "mt-9"}
           aria-labelledby="all-projects-heading"
         >
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex items-end justify-between gap-4 border-b border-line pb-2">
             <div>
               <span className="kicker">
-                {filtersActive ? "Filtered view" : "Complete index"}
+                {filtersActive ? "filtered view" : "complete index"}
               </span>
               <h2
                 id="all-projects-heading"
-                className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-ink"
+                className="mt-1 text-[20px] font-medium tracking-[-0.03em] text-ink"
               >
                 {filtersActive ? "Results" : "All projects"}
               </h2>
             </div>
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-dim">
-              {filtered.length} shown
+            <span className="text-[10px] uppercase tracking-[0.1em] text-dim">
+              [{filtered.length}] shown
             </span>
           </div>
 
           <div className="mt-4">
             {filtered.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((project) => (
                   <ProjectCard key={project.slug} project={project} />
                 ))}
@@ -372,67 +405,80 @@ export default function App() {
           <div>
             <div className="flex items-center gap-2.5">
               <BrandMark className="h-7 w-7" />
-              <span className="font-mono text-[11px] font-semibold tracking-[0.16em] text-ink">
-                JORGE<span className="text-amber">QUIJANO</span>
+              <span className="text-[12px] font-medium tracking-[0.12em] text-ink">
+                JORGE<span className="text-accent">@GITHUB</span>
               </span>
             </div>
-            <p className="mt-3 max-w-xl text-[11px] leading-relaxed text-muted">
-              A live index of things I've built and shipped on GitHub Pages. The
-              list is generated from the GitHub API, committed to the repo, and
-              deployed as a static site.
+            <p className="mt-3 max-w-xl text-[12px] leading-[1.8] text-muted">
+              <span className="text-dim"># </span>A live index of things I've
+              built and shipped on GitHub Pages. The list is generated from the
+              GitHub API, committed to the repo, and deployed as a static site.
             </p>
-            <p className="mt-2 font-mono text-[8px] uppercase tracking-[0.1em] text-dim">
-              Data {formatDate(data.syncedAt)} · Build {formatDate(buildTime)}
+            <p className="mt-2 text-[10px] uppercase tracking-[0.1em] text-dim">
+              data {formatDate(data.syncedAt)} · build {formatDate(buildTime)}
+              {syncFailed ? " · sync failed" : ""}
             </p>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-10">
             <div className="flex flex-col gap-1.5">
-              <span className="kicker">Index</span>
-              <a href="#projects" className="text-[11px] text-muted hover:text-amber">
-                All projects
+              <span className="kicker">index</span>
+              <a
+                href="#projects"
+                className="text-[11px] text-muted hover:text-accent"
+              >
+                [all projects]
               </a>
               <a
                 href="https://github.com/JorgeQuijano/JorgeQuijano.github.io#how-it-works"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-[11px] text-muted hover:text-amber"
+                className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-accent"
               >
-                How it works
-                <ArrowUpRight size={10} />
+                [how it works]
+                <span aria-hidden="true" className="text-dim">
+                  ↗
+                </span>
               </a>
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="kicker">Elsewhere</span>
+              <span className="kicker">elsewhere</span>
               <a
                 href="https://github.com/JorgeQuijano"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-[11px] text-muted hover:text-amber"
+                className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-accent"
               >
-                <GithubIcon size={12} />
-                GitHub
-                <ArrowUpRight size={10} />
+                [github]
+                <span aria-hidden="true" className="text-dim">
+                  ↗
+                </span>
               </a>
               <a
                 href="https://github.com/JorgeQuijano/JorgeQuijano.github.io"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 text-[11px] text-muted hover:text-amber"
+                className="inline-flex items-center gap-1 text-[11px] text-muted hover:text-accent"
               >
-                <Code2 size={12} />
-                Source
-                <ArrowUpRight size={10} />
+                [source]
+                <span aria-hidden="true" className="text-dim">
+                  ↗
+                </span>
               </a>
             </div>
           </div>
         </div>
 
         <div className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-1 px-4 py-3 font-mono text-[8px] uppercase tracking-[0.1em] text-dim sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-            <span>Built with Vite + React · Data from the GitHub REST API</span>
+          <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-1 px-4 py-3 text-[10px] uppercase tracking-[0.1em] text-dim sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <span className="normal-case tracking-[0.06em]">
+              <span className="text-accent">jorge@github</span>
+              <span className="text-dim">:</span>~
+              <span className="text-dim">$</span> exit 0
+            </span>
             <span>
-              Theme {choice === "system" ? "System" : choice} · {resolved}
+              built with vite + react · data from github rest api · theme{" "}
+              {themeDisplay} · EOF
             </span>
           </div>
         </div>

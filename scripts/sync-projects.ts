@@ -84,6 +84,7 @@ function sameContent(a: ProjectData, b: ProjectData): boolean {
 async function main() {
   const token = process.env.GITHUB_TOKEN?.trim() || undefined;
   const overrides = await readOverrides();
+  const existing = await readExisting();
 
   console.log(`Fetching public repositories for ${OWNER}…`);
   const allRepos = await fetchRepos(OWNER, token);
@@ -123,6 +124,7 @@ async function main() {
     overrides,
     now: new Date().toISOString(),
     aggregatorRepoName: AGGREGATOR_REPO,
+    previous: existing,
   });
 
   for (const warning of result.warnings) {
@@ -133,7 +135,6 @@ async function main() {
     throw new Error("No live projects discovered; refusing to write an empty index.");
   }
 
-  const existing = await readExisting();
   if (existing) {
     const previousBySlug = new Map(
       existing.projects.map((project) => [project.slug, project]),
@@ -167,6 +168,11 @@ async function main() {
       );
       await writeSnapshotManifest(SNAPSHOT_MANIFEST_FILE, snapshots);
     }
+    if (refresh.variantsGenerated.length > 0) {
+      console.log(
+        `Generated responsive variants for ${refresh.variantsGenerated.length} snapshots.`,
+      );
+    }
     if (refresh.failed.length > 0) {
       for (const failure of refresh.failed) {
         console.warn(
@@ -194,7 +200,7 @@ async function main() {
   );
 
   if (result.data.stats.unreachable.length > 0) {
-    console.log(`Skipped: ${result.data.stats.unreachable.join(", ")}`);
+    console.log(`Unreachable: ${result.data.stats.unreachable.join(", ")}`);
   }
 
   if (DRY_RUN) {

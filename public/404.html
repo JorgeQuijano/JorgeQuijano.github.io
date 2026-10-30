@@ -7,12 +7,27 @@
     <style>
       :root {
         color-scheme: dark;
-        --bg: #08090a;
-        --panel: #0d0f11;
-        --line: #20252a;
-        --ink: #e8e6e3;
-        --muted: #8b949e;
-        --amber: #ffb000;
+        --bg: #050806;
+        --panel: #08110a;
+        --line: #16311c;
+        --ink: #d6f9dc;
+        --muted: #87b992;
+        --dim: #62906c;
+        --accent: #5cff8f;
+        --scanline: rgba(120, 255, 150, 0.028);
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          color-scheme: light;
+          --bg: #eef1e7;
+          --panel: #f8faf2;
+          --line: #cdd6c6;
+          --ink: #0c1a10;
+          --muted: #4c6a53;
+          --dim: #58725e;
+          --accent: #0b6b2e;
+          --scanline: rgba(20, 60, 30, 0.018);
+        }
       }
       * { box-sizing: border-box; }
       body {
@@ -22,26 +37,63 @@
         place-items: center;
         background: var(--bg);
         color: var(--ink);
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
         padding: 24px;
       }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 2px,
+          var(--scanline) 3px
+        );
+      }
       main {
+        position: relative;
         width: min(100%, 560px);
         border: 1px solid var(--line);
         background: var(--panel);
         padding: 32px;
       }
-      p, a { font-size: 12px; line-height: 1.7; color: var(--muted); }
-      h1 { margin: 0 0 12px; font-size: 28px; letter-spacing: -0.04em; }
-      span { color: var(--amber); }
-      a { color: var(--amber); text-underline-offset: 3px; }
+      .prompt {
+        margin: 0 0 12px;
+        color: var(--dim);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+      }
+      .prompt span { color: var(--accent); }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+      }
+      h1 span { color: var(--accent); }
+      p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.8;
+        color: var(--muted);
+      }
+      p + p { margin-top: 12px; }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        text-underline-offset: 3px;
+      }
+      a:hover { text-decoration: underline; }
     </style>
   </head>
   <body>
     <main>
+      <p class="prompt"><span>jorge@github</span>:~$ cd /</p>
       <h1>404<span>.</span></h1>
       <p>This path is not part of the index.</p>
-      <p><a href="/">Return to the project index</a></p>
+      <p><a href="/">[ return to the project index ]</a></p>
     </main>
   </body>
 </html>

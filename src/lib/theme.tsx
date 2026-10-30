@@ -18,8 +18,8 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "jq-theme";
 const THEME_COLORS: Record<ResolvedTheme, string> = {
-  dark: "#08090a",
-  light: "#f2eee4",
+  dark: "#050806",
+  light: "#eef1e7",
 };
 
 function systemPrefersDark() {

@@ -36,14 +36,33 @@ The repository object returned by the GitHub REST API includes a `has_pages` boo
 
 `has_pages` can be true before a site is built. The sync script fetches each project URL, keeps only `200` HTML responses, and records the `last-modified` header as the deployment time. It also reads the page title, meta description, and Open Graph image to improve cards when the repository has no description or image.
 
+If a page fails a check, the previously discovered project stays in the index with a `Check failed` badge for up to three consecutive syncs. If it recovers, the badge clears automatically; after the grace period it is removed. A project that has never been live is not added during an outage. `includeWhenOffline: true` still keeps a project indefinitely while offline.
+
+### Filter links
+
+Search, category, language, and sort are stored in the URL:
+
+```text
+/?q=pdf&category=Tools&language=JavaScript&sort=name
+```
+
+The view survives refreshes, can be bookmarked or shared, and category/sort changes create history entries so Back works. Query typing uses `replaceState` to avoid filling the history stack.
+
+### Project links
+
+Project cards open in a new tab. For normal clicks and taps, the card also makes a best-effort request to keep the current tab focused so the new tab opens in the background. Browsers decide whether to honor that request, and modifier clicks, middle-clicks, keyboard activation, and popup blockers fall back to the browser's normal new-tab behavior.
+
 ### Snapshots
 
 Every card uses a local screenshot at `public/snapshots/<slug>.jpg`. The sync script captures a 1200×750 browser screenshot with Playwright and the system Chrome, then uses it as the card image. Open Graph images are only a fallback.
 
-Snapshots are refreshed only when a project's `deployedAt`/`pushedAt` or URL changes, or when the image is missing. `data/snapshots.json` records the source version so the repo does not accumulate noisy screenshot commits.
+Each snapshot also gets 480px and 960px AVIF and WebP variants. Cards use a `<picture>` element with `srcset`, so modern browsers download roughly 60–80% less image data while the JPEG remains the fallback.
+
+Snapshots are refreshed only when a project's `deployedAt`/`pushedAt` or URL changes, or when the image is missing. `data/snapshots.json` records the source version so the repo does not accumulate noisy screenshot commits. Missing variants are backfilled without taking a new screenshot.
 
 ```sh
 npm run projects:snapshots   # force-refresh every snapshot
+npm run projects:variants    # backfill responsive variants from existing JPEGs
 ```
 
 If Chrome is unavailable, the sync keeps existing snapshots and falls back to Open Graph images or the generated gradient. Set `CHROME_PATH` to point at a Chrome binary if needed. In GitHub Actions, the `ubuntu-latest` runner already includes Chrome.
@@ -100,6 +119,7 @@ The hidden entry for `jquijano.github.io` is intentional: it is a 2022 project p
 npm install
 npm run projects:sync       # fetch repos + pages, refresh stale snapshots, rewrite JSON
 npm run projects:snapshots  # force-refresh every page snapshot
+npm run projects:variants   # backfill AVIF/WebP variants from existing JPEGs
 npm run dev                 # http://localhost:5173/
 npm test
 npm run build
@@ -123,10 +143,10 @@ npm run projects:sync -- --dry-run
 The theme selector lives in the header with three choices:
 
 - **System** (default) follows `prefers-color-scheme` and updates live when the OS changes.
-- **Dark** is the terminal-inspired dark theme.
-- **Light** is the warm paper theme.
+- **Terminal** (`dark`) is a green-phosphor CRT theme with scanlines, a vignette, and monospace UI.
+- **Paper** (`light`) is the warm paper-terminal variant with the same layout and no glow.
 
-The choice is stored in `localStorage` under `jq-theme`. You can force a theme for a link or screenshot with `?theme=dark`, `?theme=light`, or `?theme=system`.
+The choice is stored in `localStorage` under `jq-theme`. You can force a theme for a link or screenshot with `?theme=dark`, `?theme=light`, or `?theme=system`; the stored values remain `dark` and `light` for compatibility even though the UI labels them **Terminal** and **Paper**.
 
 ## Deployment
 
@@ -136,7 +156,9 @@ The workflow is `.github/workflows/sync-and-deploy.yml`.
 - Uses `GITHUB_TOKEN` for the GitHub API; no PAT is required for public repos.
 - Commits `src/data/projects.generated.json` only when project data changes.
 - Deploys with the official GitHub Pages Actions.
-- If the sync fails, the site still deploys the last committed index and the job fails so the problem is visible.
+- If the sync fails, the site still deploys the last committed index and the job fails so the problem is visible. The deployed page shows a `Sync failed` status instead of claiming a fresh check.
+
+`npm run build` finishes with a Playwright pre-render. The built `index.html` contains the full project list, so crawlers, social unfurlers, and no-JS visitors see real content. The script also injects `ItemList`/`Person` JSON-LD and writes `dist/sitemap.xml`. React replaces the static shell on load, which avoids hydration differences in relative timestamps and theme labels.
 
 For this to work as the account root, the repository must be named **`JorgeQuijano.github.io`**. GitHub serves that special repo at `https://jorgequijano.github.io/`; project pages remain at `https://jorgequijano.github.io/<repo>/`.
 
@@ -154,10 +176,15 @@ data/projects.yml                      manual curation
 scripts/sync-projects.ts               discovery + generation
 scripts/lib/projects.ts                filtering, merging, page metadata parser
 scripts/lib/pages.ts                   GitHub API + page fetcher
-scripts/lib/snapshots.ts               Playwright screenshot capture + manifest
+scripts/lib/snapshots.ts               Playwright capture + responsive variants
+scripts/lib/chrome.ts                  shared headless Chrome launcher
+scripts/prerender.ts                   static HTML, JSON-LD, and sitemap
+scripts/generate-snapshot-variants.ts  backfill AVIF/WebP variants
 data/snapshots.json                    snapshot source versions
 public/snapshots/*.jpg                 generated card snapshots
+public/snapshots/*.{avif,webp}         responsive snapshot variants
 src/data/projects.generated.json       generated; do not edit by hand
+src/lib/filters.ts                     URL-backed search/filter state
 src/lib/theme.tsx                      system/dark/light theme provider
 src/components/                        index UI
 ```
@@ -166,6 +193,6 @@ src/components/                        index UI
 
 - GitHub Actions cron is best-effort. New projects normally appear within six hours, but may be delayed.
 - Scheduled workflows in public repositories can be disabled after 60 days without repository activity. Re-enable the workflow or push a commit if that happens.
-- A project temporarily returning a non-200 response is skipped from the index and listed as unreachable in the workflow log.
+- A project temporarily returning a non-200 response stays in the index for up to three syncs, then is removed. It is still listed as unreachable in the workflow log.
 - Do not create a directory in this repo named after a project repo (`/situation-index/` belongs to that project). Generated assets use `/_index/` to reduce collisions.
 - The index is public-only by default. Do not add private URLs to a public index without intending to expose them.

@@ -64,6 +64,7 @@ jobs:
         run: npm run build
         env:
           VITE_BUILD_TIME: ${{ github.run_started_at }}
+          VITE_SYNC_STATUS: ${{ steps.sync.outcome }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

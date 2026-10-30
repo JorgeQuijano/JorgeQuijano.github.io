@@ -21,6 +21,10 @@ export type Project = {
   image: string | null;
   manual: boolean;
   live: boolean;
+  /** First failed liveness check for a retained project. */
+  offlineSince?: string;
+  /** Consecutive failed liveness checks while a project is retained. */
+  missedChecks?: number;
 };
 
 export type SyncStats = {

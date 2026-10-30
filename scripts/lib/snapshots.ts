@@ -1,8 +1,10 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { chromium, type Browser } from "playwright-core";
+import type { Browser } from "playwright-core";
+import sharp from "sharp";
 import type { Project } from "../../src/lib/types";
+import { launchChrome } from "./chrome";
 import type { Overrides } from "./projects";
 
 export type SnapshotRecord = {
@@ -20,11 +22,16 @@ export type SnapshotManifest = {
 export type SnapshotRefreshResult = {
   manifest: SnapshotManifest;
   generated: string[];
+  variantsGenerated: string[];
   failed: Array<{ slug: string; error: string }>;
   skipped: number;
 };
 
 export const SNAPSHOT_DIR = "snapshots";
+export const SNAPSHOT_WIDTHS = [480, 960] as const;
+export const SNAPSHOT_FORMATS = ["avif", "webp"] as const;
+
+type SnapshotFormat = (typeof SNAPSHOT_FORMATS)[number];
 
 function emptyManifest(): SnapshotManifest {
   return { version: 1, snapshots: {} };
@@ -72,6 +79,58 @@ export function snapshotPublicPath(slug: string): string {
   return `/${snapshotFile(slug)}`;
 }
 
+export function snapshotVariantFile(
+  slug: string,
+  width: number,
+  format: SnapshotFormat,
+): string {
+  return `${SNAPSHOT_DIR}/${sanitizeSlug(slug)}-${width}.${format}`;
+}
+
+export function snapshotVariantFiles(slug: string): string[] {
+  return SNAPSHOT_WIDTHS.flatMap((width) =>
+    SNAPSHOT_FORMATS.map((format) => snapshotVariantFile(slug, width, format)),
+  );
+}
+
+export function hasSnapshotVariants(publicDir: string, slug: string): boolean {
+  return snapshotVariantFiles(slug).every((file) =>
+    existsSync(join(publicDir, file)),
+  );
+}
+
+export async function generateSnapshotVariants(
+  masterPath: string,
+  publicDir: string,
+  slug: string,
+): Promise<void> {
+  for (const width of SNAPSHOT_WIDTHS) {
+    for (const format of SNAPSHOT_FORMATS) {
+      const outputPath = join(publicDir, snapshotVariantFile(slug, width, format));
+      await mkdir(dirname(outputPath), { recursive: true });
+
+      const pipeline = sharp(masterPath).resize({
+        width,
+        withoutEnlargement: true,
+      });
+
+      if (format === "avif") {
+        await pipeline.avif({ quality: 50, effort: 4 }).toFile(outputPath);
+      } else {
+        await pipeline.webp({ quality: 78, effort: 4 }).toFile(outputPath);
+      }
+    }
+  }
+}
+
+async function removeSnapshotVariants(publicDir: string, slug: string) {
+  await Promise.all(
+    snapshotVariantFiles(slug).map((file) =>
+      rm(join(publicDir, file), { force: true }),
+    ),
+  );
+}
+
 function sourceVersion(project: Project): string {
   return project.deployedAt ?? project.pushedAt;
 }
@@ -101,23 +160,8 @@ function isCurrent(
 }
 
 async function launchBrowser(): Promise<Browser | null> {
-  const args = [
-    "--no-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--hide-scrollbars",
-  ];
-
   try {
-    const executablePath = process.env.CHROME_PATH;
-    if (executablePath) {
-      return await chromium.launch({ executablePath, headless: true, args });
-    }
-    return await chromium.launch({
-      channel: "chrome",
-      headless: true,
-      args,
-    });
+    return await launchChrome();
   } catch (error) {
     console.warn(
       `Snapshots skipped: could not launch Chrome (${
@@ -184,18 +228,52 @@ export async function refreshSnapshots({
   publicDir: string;
   force?: boolean;
 }): Promise<SnapshotRefreshResult> {
-  const needs = projects.filter(
-    (project) =>
-      !hasImageOverride(overrides, project.slug) &&
-      (force || !isCurrent(project, manifest, publicDir)),
+  const tracked = projects.filter(
+    (project) => !hasImageOverride(overrides, project.slug),
   );
+  const needs = tracked.filter(
+    (project) =>
+      force || !isCurrent(project, manifest, publicDir),
+  );
+  const variantsOnly = tracked.filter(
+    (project) =>
+      !force &&
+      isCurrent(project, manifest, publicDir) &&
+      !hasSnapshotVariants(publicDir, project.slug),
+  );
+  const affected = new Set(
+    [...needs, ...variantsOnly].map((project) => project.slug),
+  );
+
+  const generated: string[] = [];
+  const variantsGenerated: string[] = [];
+  const failed: Array<{ slug: string; error: string }> = [];
+
+  // Backfill missing variants from an already-current JPEG without taking a
+  // new screenshot.
+  for (const project of variantsOnly) {
+    try {
+      await generateSnapshotVariants(
+        join(publicDir, snapshotFile(project.slug)),
+        publicDir,
+        project.slug,
+      );
+      variantsGenerated.push(project.slug);
+    } catch (error) {
+      failed.push({
+        slug: project.slug,
+        error: `variants: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    }
+  }
 
   if (needs.length === 0) {
     return {
       manifest,
-      generated: [],
-      failed: [],
-      skipped: projects.length,
+      generated,
+      variantsGenerated,
+      failed,
+      skipped: projects.length - affected.size,
     };
   }
 
@@ -203,17 +281,18 @@ export async function refreshSnapshots({
   if (!browser) {
     return {
       manifest,
-      generated: [],
-      failed: needs.map((project) => ({
-        slug: project.slug,
-        error: "Chrome unavailable",
-      })),
-      skipped: projects.length - needs.length,
+      generated,
+      variantsGenerated,
+      failed: [
+        ...failed,
+        ...needs.map((project) => ({
+          slug: project.slug,
+          error: "Chrome unavailable",
+        })),
+      ],
+      skipped: projects.length - affected.size,
     };
   }
-
-  const generated: string[] = [];
-  const failed: Array<{ slug: string; error: string }> = [];
 
   try {
     for (const project of needs) {
@@ -222,6 +301,18 @@ export async function refreshSnapshots({
 
       try {
         await captureSnapshot(browser, project, outputPath);
+        await removeSnapshotVariants(publicDir, project.slug);
+
+        try {
+          await generateSnapshotVariants(outputPath, publicDir, project.slug);
+          variantsGenerated.push(project.slug);
+        } catch (error) {
+          failed.push({
+            slug: project.slug,
+            error: `variants: ${error instanceof Error ? error.message : String(error)}`,
+          });
+        }
+
         manifest.snapshots[project.slug] = {
           file,
           sourceUrl: project.url,
@@ -243,8 +334,9 @@ export async function refreshSnapshots({
   return {
     manifest,
     generated,
+    variantsGenerated,
     failed,
-    skipped: projects.length - needs.length,
+    skipped: projects.length - affected.size,
   };
 }
 
