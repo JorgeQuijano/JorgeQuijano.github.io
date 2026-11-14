@@ -100,8 +100,8 @@
     "situation-index": {
       "file": "snapshots/situation-index.jpg",
       "sourceUrl": "https://jorgequijano.github.io/situation-index/",
-      "sourceVersion": "2026-11-13T07:06:00.000Z",
-      "capturedAt": "2026-11-13T19:40:28.530Z"
+      "sourceVersion": "2026-11-14T06:55:00.000Z",
+      "capturedAt": "2026-11-14T17:59:10.422Z"
     },
     "stroller": {
       "file": "snapshots/stroller.jpg",
@@ -132,6 +132,12 @@
       "sourceUrl": "https://jorgequijano.github.io/windsurf/",
       "sourceVersion": "2026-10-27T17:06:00.000Z",
       "capturedAt": "2026-10-27T17:59:47.133Z"
+    },
+    "canales-en-vivo": {
+      "file": "snapshots/canales-en-vivo.jpg",
+      "sourceUrl": "https://jorgequijano.github.io/canales-en-vivo/",
+      "sourceVersion": "2026-11-14T16:16:00.000Z",
+      "capturedAt": "2026-11-14T17:59:05.967Z"
     }
   }
 }

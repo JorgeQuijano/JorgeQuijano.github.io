@@ -1,7 +1,7 @@
 {
   "version": 1,
   "owner": "JorgeQuijano",
-  "syncedAt": "2026-11-13T19:40:02.700Z",
+  "syncedAt": "2026-11-14T17:59:00.944Z",
   "projects": [
     {
       "id": 1387853777,
@@ -21,6 +21,33 @@
       "order": 1000,
       "archived": false,
       "image": "/snapshots/bottle-washer-pro-manual.jpg",
+      "manual": false,
+      "live": true
+    },
+    {
+      "id": 1457807640,
+      "slug": "canales-en-vivo",
+      "name": "Canales en Vivo",
+      "description": "Directorio de canales de noticias de Latinoamérica en vivo — señales oficiales de YouTube",
+      "url": "https://jorgequijano.github.io/canales-en-vivo/",
+      "repoUrl": "https://github.com/JorgeQuijano/canales-en-vivo",
+      "language": "Astro",
+      "topics": [
+        "astro",
+        "github-pages",
+        "latam",
+        "news",
+        "youtube"
+      ],
+      "stars": 0,
+      "createdAt": "2026-11-14T13:58:38Z",
+      "pushedAt": "2026-11-14T16:16:18Z",
+      "deployedAt": "2026-11-14T16:16:00.000Z",
+      "category": "Other",
+      "featured": false,
+      "order": 1000,
+      "archived": false,
+      "image": "/snapshots/canales-en-vivo.jpg",
       "manual": false,
       "live": true
     },
@@ -373,8 +400,8 @@
       ],
       "stars": 0,
       "createdAt": "2026-10-26T01:02:01Z",
-      "pushedAt": "2026-11-13T07:06:04Z",
-      "deployedAt": "2026-11-13T07:06:00.000Z",
+      "pushedAt": "2026-11-14T06:55:35Z",
+      "deployedAt": "2026-11-14T06:55:00.000Z",
       "category": "Finance",
       "featured": true,
       "order": 1,
@@ -490,9 +517,9 @@
     }
   ],
   "stats": {
-    "totalRepos": 39,
-    "pagesEnabled": 23,
-    "live": 22,
+    "totalRepos": 40,
+    "pagesEnabled": 24,
+    "live": 23,
     "hidden": 1,
     "unreachable": []
   }
